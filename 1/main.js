@@ -7,17 +7,7 @@ import {
   resize,
 } from "../modules/renderer.js";
 import {
-  InstancedMesh,
-  Matrix4,
   Group,
-  Object3D,
-  Vector3,
-  PCFSoftShadowMap,
-  DirectionalLight,
-  sRGBEncoding,
-  HemisphereLight,
-  DynamicDrawUsage,
-  Vector2,
   Mesh,
   BoxGeometry,
   MeshNormalMaterial,
@@ -27,12 +17,8 @@ import { mix, clamp } from "../modules/Maf.js";
 
 import { SSAO } from "./SSAO.js";
 import { Post } from "./post.js";
-// import { DeviceOrientationControls } from "../third_party/DeviceOrientationControls.js";
-// import { capture } from "../modules/capture.js";
 
 const controls = getControls();
-// controls.enableZoom = false;
-// controls.enablePan = false;
 
 const ssao = new SSAO();
 const post = new Post(renderer);
@@ -41,7 +27,6 @@ async function init() {
   render();
 }
 
-let frames = 0;
 const loopDuration = 10;
 
 let time = 0;
@@ -117,18 +102,8 @@ function render() {
   scene.rotation.y = (speed * time) / 1100;
   scene.rotation.z = (speed * time) / 900;
 
-  // renderer.render(scene, camera);
-
   ssao.render(renderer, scene, camera);
   post.render(ssao.output);
-
-  // capture(renderer.domElement);
-
-  // if (frames > 10 * 60 && window.capturer.capturing) {
-  //   window.capturer.stop();
-  //   window.capturer.save();
-  // }
-  // frames++;
 
   renderer.setAnimationLoop(render);
 }
@@ -170,8 +145,3 @@ addResize(myResize);
 
 resize();
 init();
-
-// window.start = () => {
-//   frames = 0;
-//   window.capturer.start();
-// };
