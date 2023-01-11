@@ -30,8 +30,8 @@ import { getFBO } from "../modules/fbo.js";
 import { ShaderPass } from "../modules/ShaderPass.js";
 import { shader as orthoVertexShader } from "../shaders/ortho.js";
 
-const SLICES = 10;
-const LINES = 512;
+const SLICES = 32; // 100
+const LINES = 32; // 512
 
 const vertexShader = `precision highp float;
 
@@ -93,7 +93,7 @@ void main() {
   float rim = max(dot(n, e), 0.);
   rim = .2 + .8 * rim;
   color.rgb *= vec3(rim);
-  color.rgb += .2 * pow(rim, 20.);
+  color.rgb = .9 * color.rgb + .1 * pow(rim, 20.);
   color.rgb *= channel;
 
 }
@@ -135,8 +135,8 @@ const material = new RawShaderMaterial({
 });
 
 const geometries = [
-  new TorusKnotGeometry(0.5, 0.15, 200, 40, 2, 4),
   new TorusKnotGeometry(0.5, 0.15, 200, 40, 4, 2),
+  new TorusKnotGeometry(0.5, 0.15, 200, 40, 2, 4),
   new IcosahedronGeometry(0.75, 10),
   new TorusGeometry(0.5, 0.2, 40, 40),
 ];
