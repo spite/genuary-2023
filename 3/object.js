@@ -47,6 +47,7 @@ uniform mat3 normalMatrix;
 uniform sampler2D offsetTexture;
 uniform sampler2D vectorsTexture;
 uniform vec3 channel;
+uniform float spread;
 
 out vec2 vUv;
 out vec3 vColor;
@@ -59,7 +60,7 @@ void main() {
   vUv = vec2(.5 * position.y + .5, .5);
   i = instanceMatrix[0][0];
   float offset = texture(offsetTexture, vec2(i/${LINES}., .5)).r * 255.;
-  vec4 vector = texture(vectorsTexture, vec2(.5, offset / ${SLICES}.)) * .05;
+  vec4 vector = texture(vectorsTexture, vec2(.5, offset / ${SLICES}.)) * spread;
   mvPosition = modelViewMatrix * vec4(position + vector.xyz, 1.);
   gl_Position = projectionMatrix * mvPosition;
 }
@@ -83,9 +84,10 @@ void main() {
   vec3 l = normalize(vec3(1.));
   vec3 n = normalize(vNormal);
   vec3 e = normalize(-mvPosition.xyz);
-  color.rgb = .5 + .5 * vec3(max(dot(n,l), 0.));
+  color.rgb = vec3(max(dot(n,l), 0.));
   float rim = max(dot(n, e), 0.);
-  rim = .5 + .5 * rim;
+  rim = .2 + .8 * rim;
+  color.rgb = .5 + .5 * color.rgb;
   color.rgb *= vec3(rim);
   color.rgb *= channel;
   vec4 offset = texture(offsetTexture, vec2(vUv.x, .5));
@@ -121,6 +123,7 @@ const material = new RawShaderMaterial({
     offsetTexture: { value: null },
     vectorsTexture: { value: vectorsTexture },
     channel: { value: new Vector3() },
+    spread: { value: 0.05 },
   },
   vertexShader,
   fragmentShader,
@@ -129,11 +132,13 @@ const material = new RawShaderMaterial({
   // wireframe: true,
 });
 
-// const geometry = new IcosahedronGeometry(1, 10);
-const geometry = new TorusKnotGeometry(0.5, 0.15, 200, 40, 4, 2);
-// const geometry = new TorusGeometry(0.5, 0.2, 40, 40);
+const geometries = [
+  new TorusKnotGeometry(0.5, 0.15, 200, 40, 4, 2),
+  new IcosahedronGeometry(0.75, 10),
+  new TorusGeometry(0.5, 0.2, 40, 40),
+];
 
-const mesh = new InstancedMesh(geometry, material, SLICES);
+const mesh = new InstancedMesh(geometries[0], material, SLICES);
 
 const mat = new Matrix4();
 for (let i = 0; i < LINES; i++) {
@@ -144,12 +149,17 @@ mesh.instanceMatrix.needsUpdate = true;
 
 function updateOffsetTexture(texture) {
   const data = texture.data;
-  const MIN = 1; //Math.round(randomInRange(1, 10));
-  const MAX = 10; //Math.round(randomInRange(10, 30));
+  let prev = -1;
   for (let i = 0; i < LINES; i++) {
+    const MIN = 1;
+    const MAX = Math.round(randomInRange(1, randomInRange(10, 30)));
     const skip = Math.floor(randomInRange(MIN, MAX));
-    const c = Math.floor(randomInRange(0, SLICES));
-    for (let j = i; j < i + skip; j++) {
+    let c;
+    do {
+      c = Math.floor(randomInRange(0, SLICES));
+    } while (c === prev);
+    prev = c;
+    for (let j = i; j < Math.min(i + skip, LINES); j++) {
       data[j * 4] = c;
       data[j * 4 + 1] = c;
       data[j * 4 + 2] = c;
@@ -163,7 +173,9 @@ function updateOffsetTexture(texture) {
 function updateVectorsTexture() {
   const tmp = new Vector3();
   for (let i = 0; i < SLICES; i++) {
-    tmp.set(randomInRange(-1, 1), randomInRange(-1, 1), randomInRange(-1, 1));
+    tmp
+      .set(randomInRange(-1, 1), randomInRange(-0.1, 0.1), randomInRange(-1, 1))
+      .normalize();
     vectors[i * 4] = tmp.x;
     vectors[i * 4 + 1] = tmp.y;
     vectors[i * 4 + 2] = tmp.z;
@@ -179,12 +191,18 @@ const debug = new Mesh(
   new MeshBasicMaterial({ map: null })
 );
 
-async function suzanne() {
-  const res = await loadIcosahedron();
-  mesh.geometry = res;
+async function loadModels() {
+  const [suzanne, dodecahedron, bunny] = await Promise.all([
+    loadSuzanne(),
+    loadDodecahedron(),
+    loadBunny(),
+  ]);
+  geometries.push(suzanne);
+  geometries.push(dodecahedron);
+  geometries.push(bunny);
 }
 
-// suzanne();
+loadModels();
 
 const colorRed = getFBO(1, 1, { samples: 4 });
 const colorGreen = getFBO(1, 1, { samples: 4 });
@@ -218,11 +236,18 @@ const combineShader = new RawShaderMaterial({
 
 const combinePass = new ShaderPass(combineShader);
 
+let frames = 0;
 function render(renderer, scene, camera, animate) {
   if (animate) {
-    updateOffsetTexture(offsetTextures[0]);
-    updateOffsetTexture(offsetTextures[1]);
-    updateOffsetTexture(offsetTextures[2]);
+    if (frames > 10) {
+      updateOffsetTexture(offsetTextures[0]);
+      updateOffsetTexture(offsetTextures[1]);
+      updateOffsetTexture(offsetTextures[2]);
+      frames = 0;
+    }
+    updateVectorsTexture();
+    frames++;
+    material.uniforms.spread.value = randomInRange(0.01, 0.1);
   }
 
   material.uniforms.channel.value.set(1, 0, 0);
@@ -254,10 +279,15 @@ function resize(w, h) {
 
 const output = combinePass.texture;
 
+function randomizeShape() {
+  mesh.geometry = geometries[Math.floor(Math.random() * geometries.length)];
+}
+
 export {
   mesh,
   updateOffsetTexture,
   updateVectorsTexture,
+  randomizeShape,
   debug,
   render,
   resize,

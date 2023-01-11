@@ -27,13 +27,17 @@ import {
   debug,
   updateOffsetTexture,
   updateVectorsTexture,
+  randomizeShape,
   render as renderObject,
   resize as resizeObject,
   color as objectColor,
 } from "./object.js";
 
 scene.add(mesh);
+mesh.rotation.z = 0.1;
 // scene.add(debug);
+
+camera.position.set(1, 0.3, 1).setLength(4);
 
 import { Post } from "./post.js";
 // import { DeviceOrientationControls } from "../third_party/DeviceOrientationControls.js";
@@ -63,6 +67,7 @@ function render() {
     //updateOffsetTexture();
     // updateVectorsTexture();
     time += dt;
+    mesh.rotation.y += dt / 4000;
   }
   renderObject(renderer, scene, camera, running);
   // renderer.render(scene, camera);
@@ -79,7 +84,9 @@ function render() {
   renderer.setAnimationLoop(render);
 }
 
-function randomize() {}
+function randomize() {
+  randomizeShape();
+}
 
 function goFullscreen() {
   if (renderer.domElement.webkitRequestFullscreen) {
@@ -115,7 +122,7 @@ document.querySelector("#fullscreenBtn").addEventListener("click", (e) => {
   goFullscreen();
 });
 
-renderer.setClearColor(0x050505, 1);
+renderer.setClearColor(0x070707, 1);
 
 function myResize(w, h, dPR) {
   resizeObject(w * dPR, h * dPR);
