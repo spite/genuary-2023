@@ -87,7 +87,7 @@ document.querySelector("#fullscreenBtn").addEventListener("click", (e) => {
   goFullscreen();
 });
 
-renderer.setClearColor(0x070707, 1);
+renderer.setClearColor(0x101010, 1);
 
 function myResize(w, h, dPR) {
   resizeObject(w * dPR, h * dPR);

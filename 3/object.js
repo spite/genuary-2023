@@ -80,20 +80,22 @@ uniform vec3 channel;
 out vec4 color;
 
 void main() {
-  color.a = 1.;
-  vec3 l = normalize(vec3(1.));
-  vec3 n = normalize(vNormal);
-  vec3 e = normalize(-mvPosition.xyz);
-  color.rgb = vec3(max(dot(n,l), 0.));
-  float rim = max(dot(n, e), 0.);
-  rim = .2 + .8 * rim;
-  color.rgb = .5 + .5 * color.rgb;
-  color.rgb *= vec3(rim);
-  color.rgb *= channel;
   vec4 offset = texture(offsetTexture, vec2(vUv.x, .5));
   if(round(i) != round(offset.r * 255.) ) {
     discard;
   }
+
+  color.a = 1.;
+  vec3 l = normalize(vec3(1.));
+  vec3 n = normalize(vNormal);
+  vec3 e = normalize(-mvPosition.xyz);
+  color.rgb = .5 + .5 * vec3(max(dot(n,l), 0.));
+  float rim = max(dot(n, e), 0.);
+  rim = .2 + .8 * rim;
+  color.rgb *= vec3(rim);
+  color.rgb += .2 * pow(rim, 20.);
+  color.rgb *= channel;
+
 }
 `;
 
@@ -133,6 +135,7 @@ const material = new RawShaderMaterial({
 });
 
 const geometries = [
+  new TorusKnotGeometry(0.5, 0.15, 200, 40, 2, 4),
   new TorusKnotGeometry(0.5, 0.15, 200, 40, 4, 2),
   new IcosahedronGeometry(0.75, 10),
   new TorusGeometry(0.5, 0.2, 40, 40),
