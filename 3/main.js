@@ -35,7 +35,6 @@ import {
 scene.add(mesh);
 // scene.add(debug);
 
-import { SSAO } from "./SSAO.js";
 import { Post } from "./post.js";
 // import { DeviceOrientationControls } from "../third_party/DeviceOrientationControls.js";
 // import { capture } from "../modules/capture.js";
@@ -67,7 +66,6 @@ function render() {
   }
   renderObject(renderer, scene, camera, running);
   // renderer.render(scene, camera);
-  // ssao.render(renderer, scene, camera);
   post.render(objectColor);
 
   // capture(renderer.domElement);
@@ -121,7 +119,6 @@ renderer.setClearColor(0x050505, 1);
 
 function myResize(w, h, dPR) {
   resizeObject(w * dPR, h * dPR);
-  // ssao.setSize(w, h, dPR);
   post.setSize(w, h, dPR);
 }
 addResize(myResize);
