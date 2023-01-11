@@ -14,6 +14,7 @@ import { shader as noise } from "../shaders/noise.js";
 import { shader as screen } from "../shaders/screen.js";
 import { BloomPass } from "../modules/bloomPass.js";
 import { shader as chromaticAberration } from "../shaders/chromatic-aberration.js";
+import { shader as levels } from "../shaders/levels.js";
 
 const finalFragmentShader = `
 precision highp float;
@@ -79,11 +80,13 @@ out vec4 fragColor;
 
 ${chromaticAberration}
 ${noise}
+${levels}
 
 void main() {
   vec2 uv = .8 * (vUv - .5) + .5;
   fragColor = chromaticAberration(inputTexture, uv, .1, (vUv-.5) );
   fragColor += .05 * noise(gl_FragCoord.xy, time/100.);
+  fragColor.rgb = finalLevels(fragColor.rgb, vec3(9./255.), vec3(.85), vec3(237./255.));
   fragColor.a = 1.;
 }`;
 

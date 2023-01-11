@@ -7,26 +7,7 @@ import {
   resize,
 } from "../modules/renderer.js";
 import {
-  InstancedMesh,
-  Matrix4,
-  Group,
-  Object3D,
-  Vector3,
-  PCFSoftShadowMap,
-  DirectionalLight,
-  sRGBEncoding,
-  HemisphereLight,
-  DynamicDrawUsage,
-  Vector2,
-  Mesh,
-  BoxGeometry,
-  MeshBasicMaterial,
-} from "../third_party/three.module.js";
-import {
   mesh,
-  debug,
-  updateOffsetTexture,
-  updateVectorsTexture,
   randomizeShape,
   render as renderObject,
   resize as resizeObject,
@@ -35,18 +16,13 @@ import {
 
 scene.add(mesh);
 mesh.rotation.z = 0.1;
-// scene.add(debug);
 
 camera.position.set(1, 0.3, 1).setLength(4);
 
 import { Post } from "./post.js";
-// import { DeviceOrientationControls } from "../third_party/DeviceOrientationControls.js";
-// import { capture } from "../modules/capture.js";
 
 const post = new Post(renderer);
 const controls = getControls();
-// controls.enableZoom = false;
-// controls.enablePan = false;
 
 async function init() {
   render();
@@ -64,22 +40,11 @@ function render() {
   prevTime = t;
 
   if (running) {
-    //updateOffsetTexture();
-    // updateVectorsTexture();
     time += dt;
     mesh.rotation.y += dt / 4000;
   }
   renderObject(renderer, scene, camera, running);
-  // renderer.render(scene, camera);
   post.render(objectColor);
-
-  // capture(renderer.domElement);
-
-  // if (frames > 10 * 60 && window.capturer.capturing) {
-  //   window.capturer.stop();
-  //   window.capturer.save();
-  // }
-  // frames++;
 
   renderer.setAnimationLoop(render);
 }
@@ -132,8 +97,3 @@ addResize(myResize);
 
 resize();
 init();
-
-// window.start = () => {
-//   frames = 0;
-//   window.capturer.start();
-// };
